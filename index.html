@@ -3,16 +3,20 @@
         <script>
         document.addEventListener("DOMContentLoaded", function() {
 
-var helloWorld = document.createElement('div');
-helloWorld.innerHTML = 'Hello World';
-document.body.appendChild(helloWorld);
+var input = document.createElement('input');
+input.type = 'file';
+document.body.appendChild(input);
 
-var button = document.createElement('button');
-button.innerHTML = 'Click me';
-document.body.appendChild(button);
-
-button.addEventListener('click', function() {
-  alert('Hello World');
+input.addEventListener('change', function() {
+  var file = input.files[0];
+  var reader = new FileReader();
+  reader.onload = function() {
+    var text = reader.result;
+    var node = document.createElement('pre');
+    node.innerText = text;
+    document.body.appendChild(node);
+  };
+  reader.readAsText(file);
 });
 });
         </script>
