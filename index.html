@@ -1,24 +1,79 @@
+<!DOCTYPE html>
 <html>
-    <head>
-        <script>
-        document.addEventListener("DOMContentLoaded", function() {
+  <head>
+    <title>CSV Flowchart Generator</title>
+  </head>
+  <body>
+    <!-- HTML file input element to allow users to select a CSV file to upload -->
+    <input type="file" id="csvFileInput" accept=".csv">
 
-var input = document.createElement('input');
-input.type = 'file';
-document.body.appendChild(input);
+    <!-- SVG element to display the generated flowchart -->
+    <svg id="flowchart"></svg>
 
-input.addEventListener('change', function() {
-  var file = input.files[0];
-  var reader = new FileReader();
-  reader.onload = function() {
-    var text = reader.result;
-    var node = document.createElement('pre');
-    node.innerText = text;
-    document.body.appendChild(node);
-  };
-  reader.readAsText(file);
-});
-});
-        </script>
-    </head>
-</html>
+    <!-- Load the D3.js library -->
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+
+    <!-- Load the Papa Parse library to parse the CSV data -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.1.0/papaparse.min.js"></script>
+
+    <!-- JavaScript code to handle file upload and generate the flowchart -->
+    <script>
+      const width = 800;
+      const height = 600;
+
+      // Function to handle when the user selects a CSV file to upload
+      const csvFileInput = document.getElementById('csvFileInput');
+
+      csvFileInput.addEventListener('change', function() {
+        const file = csvFileInput.files[0];
+        const reader = new FileReader();
+
+        // When the file has been read, parse the CSV data and generate the flowchart
+        reader.onload = function() {
+          const csvData = reader.result;
+          const parsedData = Papa.parse(csvData, {
+            header: true,
+            dynamicTyping: true
+          });
+
+          // Create nodes and links for each row in the CSV data
+          const nodes = parsedData.data.map(d => ({ id: d.id, label: d.label }));
+          const links = parsedData.data.map(d => ({
+            source: d.source,
+            target: d.target
+          }));
+
+          // Use D3's force layout to generate the flowchart
+          const simulation = d3
+            .forceSimulation(nodes)
+            .force('link', d3.forceLink(links))
+            .force('charge', d3.forceManyBody())
+            .force('center', d3.forceCenter());
+
+          const svg = d3
+            .select('#flowchart')
+            .append('svg')
+            .attr('width', width)
+            .attr('height', height);
+
+          const link = svg
+            .append('g')
+            .selectAll('line')
+            .data(links)
+            .join('line')
+            .attr('stroke', 'black')
+            .attr('stroke-width', 1);
+
+          const node = svg
+            .append('g')
+            .selectAll('circle')
+            .data(nodes)
+            .join('circle')
+            .attr('r', 10)
+            .attr('fill', 'lightblue')
+            .call(
+              d3
+                .drag()
+                .on('start', dragstarted)
+                .on('drag', dragged)
+                .on('end', dragended
